@@ -31,12 +31,16 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Create release
+      - name: Create or update release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
         run: |
-          gh release create "$TAG" \
-            --title="$TAG" \
-            --generate-notes \
-            main.js manifest.json styles.css
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" --clobber main.js manifest.json styles.css
+          else
+            gh release create "$TAG" \
+              --title="$TAG" \
+              --generate-notes \
+              main.js manifest.json styles.css
+          fi
